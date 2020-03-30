@@ -1,0 +1,30 @@
+{
+  "name": "fermion",
+  "version": "0.0.1",
+  "description": "A NodeJS Electron based Softphone",
+  "main": "main.js",
+  "scripts": {
+    "test": "electron ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rafaelpascoalrodrigues/fermion.git"
+  },
+  "keywords": [
+    "softphone",
+    "sip",
+    "nodejs",
+    "electron",
+    "fermion"
+  ],
+  "author": "Rafael Rodrigues",
+  "license": "UNLICENSED",
+  "bugs": {
+    "url": "https://github.com/rafaelpascoalrodrigues/fermion/issues"
+  },
+  "homepage": "https://github.com/rafaelpascoalrodrigues/fermion#readme",
+  "dependencies": {
+    "electron": "^8.2.0",
+    "mkdirp": "^1.0.3"
+  }
+}
