@@ -1,5 +1,8 @@
 module.exports = {
     userAgent: class {
+        INTERFACE_PORT_MIN = 55000;
+        INTERFACE_PORT_MAX = 59999;
+
         account   = '';
         callerid  = '';
         extensio  = '';
@@ -8,9 +11,20 @@ module.exports = {
         uri       = '';
         useragent = "fermion_softphone";
 
+        transport         = 'UDP';  /* only udp available at this moment */
+        interface_address = '';
+        interface_port    = '';
+        provider_address  = ''
+        provider_port     = ''
+
+        pickInterfacePort() {
+            return Math.floor(Math.random() * (this.INTERFACE_PORT_MAX - this.INTERFACE_PORT_MIN)) + this.INTERFACE_PORT_MIN;
+        }
+
 
         constructor(configuration) {
             const pjson = require('../package.json');
+            const network = require('./network.js');
 
             if (configuration === undefined) {
                 configuration = {};
@@ -57,8 +71,24 @@ module.exports = {
             } else {
                 this.useragent = "Fermion SoftPhone v" + pjson.version;
             }
-        }
 
+
+            var ipv4_interfaces = network.getIPv4();
+            if (ipv4_interfaces[0] !== undefined) {
+                this.interface_address = ipv4_interfaces[0]['address'];
+            }
+
+            this.interface_port = this.pickInterfacePort();
+
+            var re = new RegExp(/([A-Za-z0-9\.]*)(?::([0-9]*))?/)
+            var mt = this.uri.match(re);
+            this.provider_address = mt[1];
+            if (mt[2] !== undefined) {
+                this.provider_port = mt[2];
+            } else {
+                this.provider_port = 5060;
+            }
+         }
 
         getAccount()   { return this.account;              }
         getCallerIdt() { return this.callerid;             }
@@ -67,5 +97,11 @@ module.exports = {
         getPassword()  { return this.password.length == 0; }
         geURI()        { return this.uri;                  }
         getAgentName() { return this.useragent;            }
+
+        getTransport()        { return this.transport;         }
+        getInterfaceAddress() { return this.interface_address; }
+        getInterfacePort()    { return this.interface_port;    }
+        getProviderAddress()  { return this.provider_address;  }
+        getProviderPort()     { return this.provider_port;     }
     },
 }

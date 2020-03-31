@@ -26,4 +26,9 @@ $(function() {
     $('#config_uri').html(user_agent.geURI());
     $('#config_useragent').html(user_agent.getAgentName());
 
+    $('#ua_transport').html(user_agent.getTransport());
+    $('#ua_address').html(user_agent.getInterfaceAddress());
+    $('#ua_port').html(user_agent.getInterfacePort());
+    $('#sip_address').html(user_agent.getProviderAddress());
+    $('#sip_port').html(user_agent.getProviderPort());
 });
