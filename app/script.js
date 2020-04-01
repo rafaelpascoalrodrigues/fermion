@@ -32,6 +32,7 @@ $(function() {
         $('#ua_transport').html(user_agent.getTransport());
         $('#ua_address').html(user_agent.getInterfaceAddress());
         $('#ua_port').html(user_agent.getInterfacePort());
+        $('#ex_address').html(user_agent.getExternalAddress());
         $('#sip_address').html(user_agent.getProviderAddress());
         $('#sip_port').html(user_agent.getProviderPort());
 

@@ -16,6 +16,7 @@ module.exports = {
         transport         = 'UDP';  /* only udp available at this moment */
         interface_address = '';
         interface_port    = '';
+        external_address  = '';
         provider_address  = '';
         provider_port     = '';
     
@@ -105,6 +106,9 @@ module.exports = {
 
             this.socket = dgram.createSocket('udp4');
 
+            var server = this.socket;
+            var external_address = '';
+
             this. socket.on('error', (err) => {
                 console.log(`%csocket error ${err}`, 'color: #008000');
                 //this.socket.close();
@@ -128,10 +132,26 @@ module.exports = {
                     });
                 }, this.SOCKET_KEEPALIVE_TIMEOUT);
 
+                if (external_address !== undefined) {
+                    this.external_address = external_address
+                }
+
                 this.emitter.emit('connect');
             });
 
-            this.socket.bind(this.interface_port, this.interface_address);
+
+            const http = require('http');
+            http.get({'host': 'api.ipify.org', 'port': 80, 'path': '/'}, (resp) => {
+                resp.on('data', (ip)  => {
+                    external_address = '' + ip;
+
+                    server.bind(this.interface_port, this.interface_address);
+                });
+            })
+            .on('error', (err) => {
+
+                server.bind(this.interface_port, this.interface_address);
+            });
         }
 
         on(event, listener) { this.emitter.on(event, listener); }
@@ -147,6 +167,7 @@ module.exports = {
         getTransport()        { return this.transport;         }
         getInterfaceAddress() { return this.interface_address; }
         getInterfacePort()    { return this.interface_port;    }
+        getExternalAddress()  { return this.external_address;  }
         getProviderAddress()  { return this.provider_address;  }
         getProviderPort()     { return this.provider_port;     }
     },
