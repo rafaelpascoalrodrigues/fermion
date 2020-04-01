@@ -16,6 +16,8 @@ var user_agent = null;
 
 
 $(function() {
+    $('#state_connection').html('<font color="red"><b>disconnected</b></font>');
+
     user_agent = new sip.userAgent(sip_configuration);
 
     user_agent.on('connect', () => {
@@ -32,6 +34,8 @@ $(function() {
         $('#ua_port').html(user_agent.getInterfacePort());
         $('#sip_address').html(user_agent.getProviderAddress());
         $('#sip_port').html(user_agent.getProviderPort());
+
+        $('#state_connection').html('<font color="green"><b>connected</b></font>');
     });
 
     user_agent.connect();

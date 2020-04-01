@@ -19,6 +19,8 @@ module.exports = {
     
         emitter = null;
 
+        socket = null;
+
         pickInterfacePort() {
             return Math.floor(Math.random() * (this.INTERFACE_PORT_MAX - this.INTERFACE_PORT_MIN)) + this.INTERFACE_PORT_MIN;
         }
@@ -96,8 +98,26 @@ module.exports = {
         }
 
         connect() {
+            const dgram = require('dgram');
 
-            this.emitter.emit('connect');
+            this.socket = dgram.createSocket('udp4');
+
+            this. socket.on('error', (err) => {
+                this.socket.close();
+            });
+
+            this.socket.on('message', (msg, rinfo) => {
+                console.log(`%c${msg}`, 'color: #800000');
+            });
+
+            this.socket.on('listening', () => {
+                const address = this.socket.address();
+                console.log(`%csocket listening ${address.address}:${address.port}`, 'color: green');
+                
+                this.emitter.emit('connect');
+            });
+
+            this.socket.bind(this.interface_port, this.interface_address);
         }
 
         on(event, listener) { this.emitter.on(event, listener); }
