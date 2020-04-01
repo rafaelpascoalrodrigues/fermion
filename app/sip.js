@@ -3,6 +3,8 @@ module.exports = {
         INTERFACE_PORT_MIN = 55000;
         INTERFACE_PORT_MAX = 59999;
 
+        SOCKET_KEEPALIVE_TIMEOUT = 30000;
+
         account   = '';
         callerid  = '';
         extensio  = '';
@@ -20,6 +22,7 @@ module.exports = {
         emitter = null;
 
         socket = null;
+        socket_keepalive = undefined;
 
         pickInterfacePort() {
             return Math.floor(Math.random() * (this.INTERFACE_PORT_MAX - this.INTERFACE_PORT_MIN)) + this.INTERFACE_PORT_MIN;
@@ -103,7 +106,8 @@ module.exports = {
             this.socket = dgram.createSocket('udp4');
 
             this. socket.on('error', (err) => {
-                this.socket.close();
+                console.log(`%csocket error ${err}`, 'color: #008000');
+                //this.socket.close();
             });
 
             this.socket.on('message', (msg, rinfo) => {
@@ -113,7 +117,17 @@ module.exports = {
             this.socket.on('listening', () => {
                 const address = this.socket.address();
                 console.log(`%csocket listening ${address.address}:${address.port}`, 'color: green');
-                
+
+                if (this.socket_keepalive !== undefined) {
+                    clearInterval(this.socket_keepalive);
+                }
+                this.socket_keepalive = setInterval(() => {
+                    const message = Buffer.from(String.fromCharCode(13, 10, 13, 10));
+                    this.socket.send(message, 50600, 'sipuranet.paneas.net', (err) => {
+                        console.log(`%ckeepalive (0d 0a 0d 0a) sent`, 'color: #008000');
+                    });
+                }, this.SOCKET_KEEPALIVE_TIMEOUT);
+
                 this.emitter.emit('connect');
             });
 
