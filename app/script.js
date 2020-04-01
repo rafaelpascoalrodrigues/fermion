@@ -40,4 +40,7 @@ $(function() {
     });
 
     user_agent.connect();
+
+
+    $('#act_register').click(() => { user_agent.Register(); });
 });

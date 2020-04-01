@@ -5,9 +5,11 @@ module.exports = {
 
         SOCKET_KEEPALIVE_TIMEOUT = 30000;
 
+        sip_allow = "REGISTER"
+
         account   = '';
         callerid  = '';
-        extensio  = '';
+        extension = '';
         username  = '';
         password  = '';
         uri       = '';
@@ -151,6 +153,31 @@ module.exports = {
             .on('error', (err) => {
 
                 server.bind(this.interface_port, this.interface_address);
+            });
+        }
+
+
+        Register() {
+            var header = `` +
+                `REGISTER sip:${this.provider_address}:${this.provider_port} SIP/2.0` + "\r\n" +
+                `Via: SIP/2.0/UDP ${this.interface_address}:${this.interface_port};branch=z9hG4bK-12345678901234567890123456789012345;rport` + "\r\n" +
+                `Max-Forwards: 70` + "\r\n" +
+                `Contact: <sip:${this.extension}@${this.external_address}:${this.interface_port};transport=${this.transport};rinstance=1234567890123456>` + "\r\n" +
+                `To: \"${this.callerid}\"<sip:${this.extension}@${this.provider_address}:${this.provider_port}>` + "\r\n" +
+                `From: \"${this.callerid}\"<sip:${this.extension}@${this.provider_address}:${this.provider_port}>;tag=12345678` + "\r\n" +
+                `Call-ID: 12345678901234567890123456789012345678901234567890` + "\r\n" +
+                `CSeq: 1 REGISTER` + "\r\n" +
+                `Expires: 120` + "\r\n" +
+                `Allow: ${this.sip_allow}` + "\r\n" +
+                `Supported: replaces` + "\r\n" +
+                `User-Agent: ${this.useragent}` + "\r\n" +
+                `Content-Length: 0` + "\r\n" 
+                "\r\n\r\n"
+
+
+            const message = Buffer.from(header);
+            this.socket.send(message, this.provider_port, this.provider_address, (err) => {
+                console.log(`%c${message}`, 'color: #000080');
             });
         }
 
