@@ -18,17 +18,21 @@ var user_agent = null;
 $(function() {
     user_agent = new sip.userAgent(sip_configuration);
 
-    $('#config_account').html(user_agent.getAccount());
-    $('#config_callerid').html(user_agent.getCallerIdt());
-    $('#config_extension').html(user_agent.getExtension());
-    $('#config_username').html(user_agent.getUsername());
-    $('#config_password').html(user_agent.getPassword());
-    $('#config_uri').html(user_agent.geURI());
-    $('#config_useragent').html(user_agent.getAgentName());
+    user_agent.on('connect', () => {
+        $('#config_account').html(user_agent.getAccount());
+        $('#config_callerid').html(user_agent.getCallerIdt());
+        $('#config_extension').html(user_agent.getExtension());
+        $('#config_username').html(user_agent.getUsername());
+        $('#config_password').html(user_agent.getPassword());
+        $('#config_uri').html(user_agent.geURI());
+        $('#config_useragent').html(user_agent.getAgentName());
+    
+        $('#ua_transport').html(user_agent.getTransport());
+        $('#ua_address').html(user_agent.getInterfaceAddress());
+        $('#ua_port').html(user_agent.getInterfacePort());
+        $('#sip_address').html(user_agent.getProviderAddress());
+        $('#sip_port').html(user_agent.getProviderPort());
+    });
 
-    $('#ua_transport').html(user_agent.getTransport());
-    $('#ua_address').html(user_agent.getInterfaceAddress());
-    $('#ua_port').html(user_agent.getInterfacePort());
-    $('#sip_address').html(user_agent.getProviderAddress());
-    $('#sip_port').html(user_agent.getProviderPort());
+    user_agent.connect();
 });

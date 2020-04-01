@@ -14,8 +14,10 @@ module.exports = {
         transport         = 'UDP';  /* only udp available at this moment */
         interface_address = '';
         interface_port    = '';
-        provider_address  = ''
-        provider_port     = ''
+        provider_address  = '';
+        provider_port     = '';
+    
+        emitter = null;
 
         pickInterfacePort() {
             return Math.floor(Math.random() * (this.INTERFACE_PORT_MAX - this.INTERFACE_PORT_MIN)) + this.INTERFACE_PORT_MIN;
@@ -24,7 +26,10 @@ module.exports = {
 
         constructor(configuration) {
             const pjson = require('../package.json');
+            const events = require('events');
             const network = require('./network.js');
+
+            this.emitter = new events.EventEmitter();
 
             if (configuration === undefined) {
                 configuration = {};
@@ -88,7 +93,14 @@ module.exports = {
             } else {
                 this.provider_port = 5060;
             }
-         }
+        }
+
+        connect() {
+
+            this.emitter.emit('connect');
+        }
+
+        on(event, listener) { this.emitter.on(event, listener); }
 
         getAccount()   { return this.account;              }
         getCallerIdt() { return this.callerid;             }
