@@ -156,16 +156,31 @@ module.exports = {
             });
         }
 
+        randomSequence(length) {
+            var seq = '';
+            var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+            var chars_len = chars.length;
+            for (var i = 0; i < length; i++) {
+                seq += chars.charAt(Math.floor(Math.random() * chars_len));
+            }
+            return seq;
+        }
 
         Register() {
+
+            var call_id = this.randomSequence(64);
+            var branch = 'z9hG4bK' + this.randomSequence(57);
+            var tag = this.randomSequence(16);
+
+
             var header = `` +
                 `REGISTER sip:${this.provider_address}:${this.provider_port} SIP/2.0` + "\r\n" +
-                `Via: SIP/2.0/UDP ${this.interface_address}:${this.interface_port};branch=z9hG4bK-12345678901234567890123456789012345;rport` + "\r\n" +
+                `Via: SIP/2.0/UDP ${this.interface_address}:${this.interface_port};branch=${branch};rport` + "\r\n" +
                 `Max-Forwards: 70` + "\r\n" +
                 `Contact: <sip:${this.extension}@${this.external_address}:${this.interface_port};transport=${this.transport};rinstance=1234567890123456>` + "\r\n" +
                 `To: \"${this.callerid}\"<sip:${this.extension}@${this.provider_address}:${this.provider_port}>` + "\r\n" +
-                `From: \"${this.callerid}\"<sip:${this.extension}@${this.provider_address}:${this.provider_port}>;tag=12345678` + "\r\n" +
-                `Call-ID: 12345678901234567890123456789012345678901234567890` + "\r\n" +
+                `From: \"${this.callerid}\"<sip:${this.extension}@${this.provider_address}:${this.provider_port}>;tag=${tag}` + "\r\n" +
+                `Call-ID: ${call_id}` + "\r\n" +
                 `CSeq: 1 REGISTER` + "\r\n" +
                 `Expires: 120` + "\r\n" +
                 `Allow: ${this.sip_allow}` + "\r\n" +
