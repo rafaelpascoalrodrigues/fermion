@@ -129,7 +129,7 @@ module.exports = {
                 }
                 this.socket_keepalive = setInterval(() => {
                     const message = Buffer.from(String.fromCharCode(13, 10, 13, 10));
-                    this.socket.send(message, 50600, 'sipuranet.paneas.net', (err) => {
+                    this.socket.send(message, this.provider_port,this.provider_address, (err) => {
                         console.log(`%ckeepalive (0d 0a 0d 0a) sent`, 'color: #008000');
                     });
                 }, this.SOCKET_KEEPALIVE_TIMEOUT);
