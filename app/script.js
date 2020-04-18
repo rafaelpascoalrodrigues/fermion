@@ -25,7 +25,7 @@ $(function() {
         $('#config_callerid').html(user_agent.getCallerIdt());
         $('#config_extension').html(user_agent.getExtension());
         $('#config_username').html(user_agent.getUsername());
-        $('#config_password').html(user_agent.getPassword());
+        $('#config_password').html(user_agent.getPassword().toString());
         $('#config_uri').html(user_agent.geURI());
         $('#config_useragent').html(user_agent.getAgentName());
     

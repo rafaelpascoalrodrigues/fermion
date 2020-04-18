@@ -67,7 +67,7 @@ module.exports = {
                 this.username = this.account;
             }
 
-            if (configuration.password === undefined) {
+            if (configuration.password !== undefined) {
                 this.password = configuration.password;
             } else {
                 this.password = '';
@@ -358,7 +358,7 @@ module.exports = {
         getCallerIdt() { return this.callerid;             }
         getExtension() { return this.extension;            }
         getUsername()  { return this.username;             }
-        getPassword()  { return this.password.length == 0; }
+        getPassword()  { return this.password.length != 0; }
         geURI()        { return this.uri;                  }
         getAgentName() { return this.useragent;            }
 
