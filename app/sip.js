@@ -117,6 +117,7 @@ module.exports = {
             });
 
             this.socket.on('message', (msg, rinfo) => {
+                this.ParseReceivedSIP2('' + msg);
                 console.log(`%c${msg}`, 'color: #800000');
             });
 
@@ -195,6 +196,161 @@ module.exports = {
                 console.log(`%c${message}`, 'color: #000080');
             });
         }
+
+
+        ParseReceivedSIP2(message) {
+            var message_array = message.split('\r\n');
+            var message_len = message_array.length;
+            var message_list = { "HEADER": { "plaintext": message_array[0] , 'data_array': [] } };
+
+            var re_headers = new RegExp(/(\S*)\s*:\s*(.*)/);
+            var re_header_space = new RegExp(/[^\s]+/g);
+            var re_header_comma = new RegExp(/[^,\s]+/g);
+            var re_header_equal = new RegExp(/(\w*)=((?:"([^"]*)")|(?:[^\s,]*))/g);
+            var re_header_semicolon = new RegExp(/;?([^;]+)/g);
+            var re_header_equal_semicolon = new RegExp(/;(\w+)(?:=((?:"([^"]*)")|(?:[^\s;,]*)))?/g);
+
+            var re_first_nonspace = new RegExp(/^s*(\S*)\s*(.*)/);
+            var re_address_port = new RegExp(/\s*([A-Za-z0-9\.]*)(?::([0-9]*))?\s*/);
+
+            var re_identification_name = new RegExp(/\s*(?:(?:"([^"\\]*(?:\\.[^"\\]*)*)")|(\S*))\s*(<sip:.*)/);
+            var re_identification_uri = new RegExp(/(?:(<(sip:[^>]*)>)|(sip:[^;\s]*))(.*)/);
+
+
+            var data = re_first_nonspace.exec(message_array[0]);
+            var data_string = data[1];
+            var temp_string = data[2];
+            re_first_nonspace.exec(/* clear regex */);
+
+            if (data_string == 'SIP/2.0') {
+                message_list["HEADER"]['version'] = data_string;
+                data = re_first_nonspace.exec(temp_string);
+                
+                message_list["HEADER"]['status_code'] = parseInt(data[1]);
+                message_list["HEADER"]['reason_phrase'] = data[2];
+                re_first_nonspace.exec(/* clear regex */);
+            } else {
+                message_list["HEADER"]['method'] = data_string;
+            }
+
+
+            for(var i = 1; i < message_len; i++) {
+                if (message_array[i] == "") {
+                    break
+                }
+                
+                var mt = message_array[i].match(re_headers);             
+                if (mt !== null) {
+                    var header = mt[1];
+                    var plaintext = mt[2];
+
+                    message_list[header] = {
+                        'plaintext': plaintext,
+                        'data_array': []
+                    };
+
+                    var data_array = []; 
+                    if (header == 'Allow') {
+                        data_array = plaintext.match(re_header_comma);
+
+                    } else if (header == 'Supported') {
+                        data_array = plaintext.match(re_header_comma);
+
+                    } else if (header == 'CSeq') {
+                        data_array = plaintext.match(re_header_space);
+                        if (data_array !== null) {
+                            message_list[header]['sequence'] = parseInt(data_array[0]);
+                            message_list[header]['method'] = data_array[1];
+                        }
+
+                    } else if (header == 'From' || header == 'To') {                        
+                        var temp_string = "";
+                        var temp_array = re_identification_name.exec(plaintext);
+                        
+                        var identification_name = temp_array[1] != null ? temp_array[1] : temp_array[2];
+                        temp_string  = temp_array[3];
+                        re_identification_name.exec(/* clear regex */);
+                        
+                        temp_array = re_identification_uri.exec(temp_string);
+                        
+                        var identification_uri =  temp_array[2] != null ? temp_array[2] : temp_array[3];
+                        temp_string  = temp_array[4];
+                        temp_array = re_identification_uri.exec(/* clear regex */);
+                        
+
+                        message_list[header]['identification_name'] = identification_name;
+                        message_list[header]['identification_uri'] = identification_uri;
+
+                        data_array = [ identification_name, identification_uri];
+
+                        temp_array = temp_string.match(re_header_semicolon);
+                        for (j = 0; j < temp_array.length; j++) {
+                            var parameter = re_header_equal_semicolon.exec(temp_array[j]);
+                            
+                            if (parameter != null) {
+                                data_array.push(parameter[0].replace(/^;/, ''));
+                                var parameter_name = parameter[1];
+                                var parameter_value = parameter[3] != null ? parameter[3] : parameter[2] != undefined ? parameter[2] : '';
+                                message_list[header][parameter_name] = parameter_value;
+                            }
+                            re_header_equal_semicolon.exec(/* clear regex */);
+                        }
+
+                    } else if (header == 'WWW-Authenticate') {
+                        var scheme = plaintext.match(re_header_space);
+                        message_list[header]['scheme'] = scheme[0];
+
+                        data_array = plaintext.match(re_header_equal);
+                        for (var j = 0; j < data_array.length; j++) {
+                            var parameter = re_header_equal.exec(data_array[j]);
+                            
+                            if (parameter != null) {
+                                var parameter_name = parameter[1];
+                                var parameter_value = parameter[3] != null ? parameter[3] : parameter[2];
+                                message_list[header][parameter_name] = parameter_value;
+                            }
+                            re_header_equal.exec(/* clear regex */);
+                        }
+                        data_array.unshift(scheme[0]);
+
+                    } else if (header == 'Via') {
+                        var data = re_first_nonspace.exec(plaintext);
+                        
+                        message_list[header]['version'] = data[1];
+                        var temp_array = data[2].match(re_header_semicolon);
+                        re_first_nonspace.exec(/* clear regex */);
+
+                        var address = re_address_port.exec(temp_array[0]);
+                        data_array = [];
+                        data_array.push(data[1]);
+                        data_array.push(address[0]);
+                        re_address_port.exec(/* clear regex */);
+
+                        if (address != null) {
+                            message_list[header]['address'] = address[1];
+                            message_list[header]['port'] = parseInt(address[2]);
+                        }
+
+                        for (j = 1; j < temp_array.length; j++) {
+                            var parameter = re_header_equal_semicolon.exec(temp_array[j]);
+                            if (parameter != null) {
+                                data_array.push(parameter[0].replace(/^;/, ''));
+                                var parameter_name = parameter[1];
+                                var parameter_value = parameter[3] != null ? parameter[3] : parameter[2] != undefined ? parameter[2] : '';
+                                message_list[header][parameter_name] = parameter_value;
+                            }
+                            re_header_equal_semicolon.exec(/* clear regex */);
+                        }
+
+                    } else {
+                        data_array = plaintext.match(re_header_space);
+                    }
+
+                    message_list[header]['data_array'] = data_array;
+                }
+            }
+        }
+
 
         on(event, listener) { this.emitter.on(event, listener); }
 
