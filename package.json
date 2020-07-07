@@ -24,7 +24,7 @@
   },
   "homepage": "https://github.com/rafaelpascoalrodrigues/fermion#readme",
   "dependencies": {
-    "electron": "^8.2.0",
+    "electron": "^8.2.4",
     "jquery": "^3.4.1",
     "mkdirp": "^1.0.3"
   }
